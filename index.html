@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Body as Temple — The Bibliotarian Way</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --earth:#2C1810;--wheat:#C8A96E;--olive:#4A5C3A;--accent:#B85C38;
+    --linen:#F5EFE4;--cream:#FAF7F2;--parchment:#EDE5D4;--stone:#8C7B6B;
+    --text:#1A120B;--muted:#6B5C50;--hint:#A08878;
+    --border:#E8DDD4;--card:#FFFFFF;--surface:#F5EFE4;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --text:#F5EFE4;--muted:#B0998A;--hint:#7A6558;
+      --border:#3A2820;--card:#1E1208;--surface:#251510;--cream:#1A0E08;
+    }
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--cream);color:var(--text);line-height:1.6;min-height:100vh}
+  .app{max-width:680px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;box-shadow:0 0 40px rgba(0,0,0,.12)}
+
+  /* HEADER */
+  .app-header{background:var(--earth);color:var(--linen);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+  .logo{font-size:16px;font-weight:600;letter-spacing:.3px}
+  .logo span{color:var(--wheat)}
+  .logo-sub{font-size:10px;color:rgba(245,239,228,.4);font-style:italic;display:block;margin-top:1px;letter-spacing:.5px}
+  .hdr-right{text-align:right}
+  .hdr-date{font-size:11px;color:rgba(245,239,228,.5)}
+  .hdr-window{font-size:11px;color:var(--wheat);font-weight:500;margin-top:2px}
+
+  /* TAB BAR */
+  .tab-bar{background:var(--card);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:65px;z-index:19}
+  .tab-bar::-webkit-scrollbar{display:none}
+  .tab{padding:12px 14px;font-size:12px;font-weight:600;color:var(--muted);background:none;border:none;cursor:pointer;white-space:nowrap;border-bottom:2.5px solid transparent;margin-bottom:-1px;letter-spacing:.3px;font-family:inherit}
+  .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab i{font-size:14px;vertical-align:-2px;margin-right:4px}
+
+  /* BODY */
+  .body{padding:16px;flex:1}
+  .section{display:none}.section.on{display:block}
+
+  /* VERSE BANNER */
+  .verse-banner{background:var(--earth);color:var(--linen);border-radius:12px;padding:16px 18px;margin-bottom:16px}
+  .verse-eyebrow{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--wheat);margin-bottom:7px;font-weight:600}
+  .verse-text{font-size:14px;line-height:1.75;font-style:italic;color:rgba(245,239,228,.9)}
+  .verse-ref{font-size:11px;color:var(--wheat);margin-top:8px;font-style:normal;font-weight:600}
+
+  /* STATS */
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+  .stat-card{background:var(--surface);border-radius:10px;padding:12px 14px}
+  .stat-label{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:500}
+  .stat-val{font-size:22px;font-weight:600;color:var(--text)}
+  .stat-unit{font-size:11px;color:var(--muted);font-weight:400}
+
+  /* WINDOW TRACKER */
+  .window-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+  .window-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+  .time-track{height:8px;background:var(--surface);border-radius:4px;overflow:hidden;margin-bottom:8px;position:relative}
+  .time-fill{height:100%;border-radius:4px;background:var(--olive);transition:width .5s ease}
+  .time-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--hint)}
+  .window-status{display:flex;align-items:center;gap:10px;margin-top:11px;flex-wrap:wrap}
+  .w-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+  .w-fast{background:rgba(44,24,16,.1);color:var(--earth)}
+  .w-eat{background:rgba(74,92,58,.12);color:var(--olive)}
+  .w-cd{font-size:12px;color:var(--muted)}
+
+  /* CALORIE RING */
+  .ring-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .ring-wrap{position:relative;width:76px;height:76px;flex-shrink:0}
+  .ring-wrap svg{width:76px;height:76px}
+  .ring-inside{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .ring-num{font-size:15px;font-weight:700}
+  .ring-sub{font-size:9px;color:var(--muted)}
+  .macro-rows{flex:1}
+  .macro-r{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px}
+  .macro-r:last-child{margin-bottom:0}
+  .macro-name{width:50px;color:var(--muted);font-size:11px;font-weight:500}
+  .macro-bg{flex:1;height:5px;background:var(--surface);border-radius:3px;overflow:hidden}
+  .macro-fg{height:100%;border-radius:3px;transition:width .4s}
+  .macro-amt{width:36px;text-align:right;font-size:11px;color:var(--text);font-weight:500}
+
+  /* LOG BOX */
+  .log-box{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+  .log-item{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px}
+  .log-item:last-child{border-bottom:none}
+  .log-name{font-weight:600;font-size:13px}
+  .log-sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .log-cal{font-weight:700;color:var(--accent);font-size:13px;margin-right:8px}
+  .log-del{background:none;border:none;cursor:pointer;color:var(--hint);padding:5px;font-size:14px}
+  .log-del:hover{color:var(--accent)}
+  .empty-state{padding:24px;text-align:center;color:var(--hint);font-size:13px}
+
+  /* SECTION HEAD */
+  .sec-head{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+
+  /* FORM */
+  .form-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
+  .f-label{font-size:11px;color:var(--muted);margin-bottom:4px;display:block;font-weight:600;letter-spacing:.3px}
+  .f-row{margin-bottom:12px}
+  .f-row input,.f-row select,.f-row textarea{width:100%;font-size:14px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:inherit;outline:none}
+  .f-row input:focus,.f-row textarea:focus{border-color:var(--wheat)}
+  .f-row textarea{resize:vertical;min-height:80px;line-height:1.6}
+  .f-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .f-grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+  .f-grid4 input{font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;width:100%}
+  .f-grid4 input:focus{border-color:var(--wheat)}
+  .f-grid2 input{font-size:14px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;width:100%}
+  .f-grid2 input:focus{border-color:var(--wheat)}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap}
+  .btn-primary{background:var(--earth);color:var(--linen);border:none;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.3px}
+  .btn-primary:hover{background:#3d2218}
+  .btn-ghost{background:none;color:var(--muted);border:1px solid var(--border);padding:9px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit}
+  .btn-ghost:hover{border-color:var(--stone)}
+
+  /* QUICK ADD */
+  .quick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:9px;margin-bottom:18px}
+  .quick-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px;cursor:pointer;text-align:left;font-family:inherit;width:100%;transition:border-color .15s}
+  .quick-btn:hover{border-color:var(--wheat)}
+  .q-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+  .q-sub{font-size:11px;color:var(--muted)}
+
+  /* MEAL GUIDE */
+  .mg-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+  .mg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;flex-wrap:wrap;gap:6px}
+  .mg-title{font-size:14px;font-weight:700;color:var(--text)}
+  .mg-tag{font-size:10px;padding:3px 9px;border-radius:12px;background:rgba(200,169,110,.2);color:#7a5c10;font-weight:600}
+  .mg-body{font-size:13px;color:var(--muted);line-height:1.65}
+  .mg-list{padding-left:16px;margin-top:7px}
+  .mg-list li{margin-bottom:4px}
+
+  /* AVOID */
+  .avoid-box{background:rgba(184,92,56,.05);border:1px solid rgba(184,92,56,.2);border-radius:10px;padding:12px 14px;margin-top:12px}
+  .avoid-title{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+  .pill-row{display:flex;flex-wrap:wrap;gap:5px}
+  .pill-no{display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;background:rgba(184,92,56,.1);color:var(--accent);font-weight:500}
+
+  /* BIBLIO PRINCIPLES */
+  .principle-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;margin-bottom:12px}
+  .p-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+  .p-icon{width:36px;height:36px;border-radius:10px;background:var(--earth);color:var(--wheat);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+  .p-title{font-size:14px;font-weight:700;color:var(--text);line-height:1.35;margin-bottom:4px}
+  .p-tag{font-size:10px;padding:2px 8px;border-radius:12px;background:rgba(74,92,58,.1);color:var(--olive);font-weight:600;display:inline-block}
+  .p-body{font-size:13px;color:var(--muted);line-height:1.7}
+  .p-verse{margin-top:10px;padding:9px 12px;background:var(--surface);border-left:3px solid var(--wheat);border-radius:0 8px 8px 0;font-size:12px;font-style:italic;color:var(--muted)}
+  .p-verse span{font-style:normal;color:var(--accent);font-weight:600}
+
+  /* FOOD GRID */
+  .food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:8px;margin-bottom:16px}
+  .food-pill{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+  .fp-name{font-weight:600;color:var(--text);font-size:13px;margin-bottom:2px}
+  .fp-ref{font-size:10px;color:var(--hint)}
+
+  /* WORKOUT */
+  .day-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px}
+  .day-head{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;cursor:pointer;user-select:none}
+  .day-head:hover{background:var(--surface)}
+  .d-left{display:flex;align-items:center;gap:10px}
+  .done-dot{width:8px;height:8px;border-radius:50%;background:var(--olive);display:none;flex-shrink:0}
+  .done-day .done-dot{display:block}
+  .d-name{font-size:14px;font-weight:700;color:var(--text)}
+  .d-focus{font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
+  .d-chevron{font-size:16px;color:var(--hint);transition:transform .2s;flex-shrink:0}
+  .day-content{display:none;padding:0 15px 14px}
+  .day-content.open{display:block}
+  .ex-tbl{width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed}
+  .ex-tbl th{font-size:10px;text-transform:uppercase;letter-spacing:.7px;color:var(--hint);font-weight:600;padding:8px 0 5px;border-bottom:1px solid var(--border);text-align:left}
+  .ex-tbl th:nth-child(2),.ex-tbl th:nth-child(3),.ex-tbl th:nth-child(4){text-align:center;width:50px}
+  .ex-tbl td{padding:7px 0;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;vertical-align:top}
+  .ex-tbl td:nth-child(2),.ex-tbl td:nth-child(3),.ex-tbl td:nth-child(4){text-align:center;color:var(--muted)}
+  .ex-tbl tr:last-child td{border-bottom:none}
+  .mark-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;cursor:pointer;color:var(--muted);margin-top:12px;font-family:inherit;font-weight:500}
+  .mark-btn.done{background:rgba(74,92,58,.1);color:var(--olive);border-color:var(--olive)}
+  .cardio-card{background:rgba(74,92,58,.06);border:1px solid rgba(74,92,58,.2);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:13px;color:var(--muted);line-height:1.6}
+  .cardio-title{font-weight:700;color:var(--olive);margin-bottom:5px;font-size:13px}
+
+  /* JOURNAL */
+  .prompt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .prompt-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 12px;font-size:12px;color:var(--muted);line-height:1.55;cursor:pointer;transition:border-color .15s}
+  .prompt-card:hover{border-color:var(--wheat)}
+  .prompt-card strong{display:block;color:var(--text);margin-bottom:3px;font-size:12px;font-weight:700}
+  .j-entry{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+  .j-meta{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+  .j-title{font-size:14px;font-weight:700;color:var(--text)}
+  .j-date{font-size:11px;color:var(--muted);margin-top:2px}
+  .j-text{font-size:13px;color:var(--muted);line-height:1.7}
+  .j-del{background:none;border:none;cursor:pointer;color:var(--hint);font-size:15px;padding:3px}
+  .j-del:hover{color:var(--accent)}
+
+  /* PROGRESS */
+  .prog-row{display:flex;align-items:flex-start;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px}
+  .prog-row:last-child{border-bottom:none}
+  .prog-w{font-weight:700;font-size:14px}
+  .prog-date{font-size:11px;color:var(--muted);margin-top:2px}
+  .prog-note{font-size:12px;color:var(--muted);font-style:italic;margin-top:3px}
+  .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:14px}
+  .chart-title{font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+  .chart-inner{position:relative;width:100%;height:180px}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--earth);color:var(--linen);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .3s;z-index:999;white-space:nowrap;letter-spacing:.2px;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+  .toast.show{opacity:1}
+
+  .info-bar{background:rgba(74,92,58,.07);border:1px solid rgba(74,92,58,.18);border-radius:10px;padding:11px 14px;margin-bottom:16px;font-size:13px;color:var(--muted);line-height:1.6}
+  .info-bar strong{color:var(--text)}
+
+  @media(max-width:480px){
+    .f-grid4{grid-template-columns:1fr 1fr}
+    .stats-grid{grid-template-columns:1fr 1fr}
+    .prompt-grid{grid-template-columns:1fr}
+    .app-header{padding:12px 14px}
+    .body{padding:12px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="app-header">
+    <div>
+      <div class="logo">Body as <span>Temple</span></div>
+      <div class="logo-sub">The Bibliotarian Way · Josh's Personal Tracker</div>
+    </div>
+    <div class="hdr-right">
+      <div class="hdr-date" id="headerDate"></div>
+      <div class="hdr-window" id="headerWindow"></div>
+    </div>
+  </header>
+
+  <nav class="tab-bar">
+    <button class="tab on" onclick="showTab('dash',this)"><i class="ti ti-home" aria-hidden="true"></i>Home</button>
+    <button class="tab" onclick="showTab('meals',this)"><i class="ti ti-salad" aria-hidden="true"></i>Meals</button>
+    <button class="tab" onclick="showTab('biblio',this)"><i class="ti ti-book" aria-hidden="true"></i>Biblio Guide</button>
+    <button class="tab" onclick="showTab('workout',this)"><i class="ti ti-barbell" aria-hidden="true"></i>Workout</button>
+    <button class="tab" onclick="showTab('journal',this)"><i class="ti ti-notebook" aria-hidden="true"></i>Journal</button>
+    <button class="tab" onclick="showTab('progress',this)"><i class="ti ti-chart-line" aria-hidden="true"></i>Progress</button>
+  </nav>
+
+  <div class="body">
+
+    <!-- DASHBOARD -->
+    <div id="tab-dash" class="section on">
+      <div class="verse-banner" id="dashVerse"></div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Calories today</div><div class="stat-val" id="dCal">0 <span class="stat-unit">/ 2,600</span></div></div>
+        <div class="stat-card"><div class="stat-label">Protein</div><div class="stat-val" id="dProt">0 <span class="stat-unit">g / 170g</span></div></div>
+        <div class="stat-card"><div class="stat-label">Meals logged</div><div class="stat-val" id="dMeals">0</div></div>
+        <div class="stat-card"><div class="stat-label">Workouts this week</div><div class="stat-val" id="dWorkouts">0</div></div>
+      </div>
+      <div class="window-card">
+        <div class="window-label">Daily fast — Eating window 1:00 PM – 5:00 PM</div>
+        <div class="time-track"><div class="time-fill" id="wFill" style="width:0%"></div></div>
+        <div class="time-labels"><span>12 AM</span><span>6 AM</span><span>1 PM</span><span>5 PM</span><span>12 AM</span></div>
+        <div class="window-status">
+          <span class="w-badge w-fast" id="wBadge"><i class="ti ti-moon" aria-hidden="true" style="font-size:12px"></i> Fasting</span>
+          <span class="w-cd" id="wCd"></span>
+        </div>
+      </div>
+      <div class="ring-row">
+        <div class="ring-wrap">
+          <svg viewBox="0 0 76 76" role="img" aria-label="Calorie intake progress ring">
+            <circle cx="38" cy="38" r="30" fill="none" stroke-width="7" stroke="#EDE5D4"/>
+            <circle cx="38" cy="38" r="30" fill="none" stroke-width="7" stroke="#B85C38" stroke-dasharray="188.5" stroke-dashoffset="188.5" id="calCircle" stroke-linecap="round" transform="rotate(-90 38 38)"/>
+          </svg>
+          <div class="ring-inside"><div class="ring-num" id="calPct">0%</div><div class="ring-sub">of goal</div></div>
+        </div>
+        <div class="macro-rows">
+          <div class="macro-r"><span class="macro-name">Protein</span><div class="macro-bg"><div class="macro-fg" id="mP" style="width:0%;background:#4A5C3A"></div></div><span class="macro-amt" id="mPv">0g</span></div>
+          <div class="macro-r"><span class="macro-name">Carbs</span><div class="macro-bg"><div class="macro-fg" id="mC" style="width:0%;background:#C8A96E"></div></div><span class="macro-amt" id="mCv">0g</span></div>
+          <div class="macro-r"><span class="macro-name">Fats</span><div class="macro-bg"><div class="macro-fg" id="mF" style="width:0%;background:#B85C38"></div></div><span class="macro-amt" id="mFv">0g</span></div>
+        </div>
+      </div>
+      <div class="sec-head">Today's food log</div>
+      <div class="log-box" id="dashLog"><div class="empty-state"><i class="ti ti-salad" aria-hidden="true" style="font-size:24px;display:block;margin-bottom:8px;color:#C8A96E"></i>No meals logged yet today</div></div>
+    </div>
+
+    <!-- MEALS -->
+    <div id="tab-meals" class="section">
+      <div class="form-box">
+        <div class="sec-head" style="margin-bottom:12px">Log a meal</div>
+        <div class="f-row"><label class="f-label">Food / meal name</label><input type="text" id="mName" placeholder="e.g. Grass-fed beef + sweet potato + broccoli"></div>
+        <div class="f-grid4">
+          <div><label class="f-label">Calories</label><input type="number" id="mCal" placeholder="0" min="0"></div>
+          <div><label class="f-label">Protein g</label><input type="number" id="mProt" placeholder="0" min="0"></div>
+          <div><label class="f-label">Carbs g</label><input type="number" id="mCarb" placeholder="0" min="0"></div>
+          <div><label class="f-label">Fat g</label><input type="number" id="mFat" placeholder="0" min="0"></div>
+        </div>
+        <div class="f-row"><label class="f-label">Notes (optional)</label><input type="text" id="mNote" placeholder="How it felt, energy level, gratitude..."></div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="logMeal()"><i class="ti ti-plus" aria-hidden="true"></i> Log meal</button>
+          <button class="btn-ghost" onclick="clearMeal()">Clear</button>
+        </div>
+      </div>
+
+      <div class="sec-head">Quick add — Bibliotarian foods</div>
+      <div class="quick-grid" id="quickGrid"></div>
+
+      <div class="sec-head">Meal guide — 1 PM to 5 PM window</div>
+      <div class="mg-card">
+        <div class="mg-head"><div class="mg-title">Pre-workout shake — 6:00–6:20 AM</div><span class="mg-tag">~120 kcal · muscle protection</span></div>
+        <div class="mg-body">Before morning training only. Minimal insulin impact — pure muscle protection during the fast.
+          <ul class="mg-list">
+            <li>1 scoop grass-fed whey isolate in 8–10 oz water only</li>
+            <li>~25g protein, ~1g carbs. No fruit, no oats.</li>
+            <li>Brands: Naked Whey, Promix, or Ancient Nutrition (Jordan Rubin's brand)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mg-card">
+        <div class="mg-head"><div class="mg-title">Meal 1 — 1:00 PM (Break-Fast)</div><span class="mg-tag">~900–1,100 kcal</span></div>
+        <div class="mg-body">Your largest meal. Biblio Diet emphasis: grass-fed meats, organic whole foods, olive oil, vegetables. Break your fast with what God designed.
+          <ul class="mg-list">
+            <li>6 oz grass-fed beef, lamb, bison, or wild-caught fish (salmon, sardines)</li>
+            <li>1–1.5 cups white rice, sweet potato, lentils, barley, or chickpeas</li>
+            <li>Unlimited roasted or raw vegetables — broccoli, leafy greens, zucchini, garlic</li>
+            <li>1 tbsp extra virgin olive oil · ½ avocado for healthy fats</li>
+            <li>Optional: small piece of whole grain sourdough (properly fermented)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="mg-card">
+        <div class="mg-head"><div class="mg-title">Meal 2 — 3:00–3:30 PM</div><span class="mg-tag">~700–900 kcal</span></div>
+        <div class="mg-body">Slightly lighter. Can be whole food or Warrior Shake + food. Biblio emphasis: raw dairy, eggs, fruits, honey.
+          <ul class="mg-list">
+            <li>Warrior Shake: grass-fed whey isolate + banana + blueberries + rolled oats + almond butter + almond milk</li>
+            <li>Or: 4–6 whole eggs + side salad + avocado</li>
+            <li>Or: Raw grass-fed Greek yogurt + berries + raw local honey + walnuts</li>
+            <li>Or: Sardines or tuna (clean fish) + avocado + whole grain bread</li>
+            <li>Or: Lamb or chicken + roasted vegetables + figs or pomegranate on the side</li>
+          </ul>
+        </div>
+      </div>
+      <div class="avoid-box">
+        <div class="avoid-title">Avoid — The Biblio Diet unclean list</div>
+        <div class="pill-row">
+          <span class="pill-no">Processed seed oils</span><span class="pill-no">Artificial sweeteners</span>
+          <span class="pill-no">Refined sugar</span><span class="pill-no">Ultra-processed snacks</span>
+          <span class="pill-no">Commercial fast food</span><span class="pill-no">Mystery "natural flavors"</span>
+          <span class="pill-no">Pork / shellfish</span><span class="pill-no">Alcohol</span>
+          <span class="pill-no">Factory-farmed meat</span><span class="pill-no">Pasteurized factory dairy</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BIBLIO GUIDE -->
+    <div id="tab-biblio" class="section">
+      <div class="verse-banner" style="margin-bottom:16px">
+        <div class="verse-eyebrow">The Biblio Diet · Dr. Josh Axe & Jordan Rubin</div>
+        <div class="verse-text">"God designed food with purpose. The same foods that sustained biblical figures for centuries are exactly what modern nutritional science says we need to heal our metabolism, lose weight naturally, and feel truly alive."</div>
+        <div class="verse-ref">— The Bibliotarian Way</div>
+      </div>
+
+      <div class="sec-head">The 7 Pillars of the Bibliotarian Lifestyle</div>
+
+      <div class="principle-card">
+        <div class="p-header"><div class="p-icon"><i class="ti ti-wheat" aria-hidden="true"></i></div>
+          <div><div class="p-title">Pillar 1 — Eat clean, whole foods as God created them</div><span class="p-tag">Foundation</span></div>
+        </div>
+        <div class="p-body">Rubin and Axe teach that God repeatedly distinguished between clean and unclean foods in Scripture. The core principle: eat foods as close to their created form as possible — grass-fed meats, organic produce, properly prepared grains, raw dairy, cold-pressed oils. The more processing between seed and plate, the further from God's design. Every ingredient should be identifiable as something from the earth. If you can't pronounce it or it didn't exist 2,000 years ago, reconsider it.</div>
+        <div class="p-verse">"And God said, 'I give you every seed-bearing plant... and every tree that has fruit with seed in it. They will be yours for food.'" <span>— Genesis 1:29</span></div>
+      </div>
+
+      <div class="principle-card">
+        <div class="p-header"><div class="p-icon"><i class="ti ti-moon" aria-hidden="true"></i></div>
+          <div><div class="p-title">Pillar 2 — Fasting as spiritual and physiological discipline</div><span class="p-tag">Your 4:20 IMF</span></div>
+        </div>
+        <div class="p-body">The Biblio Diet frames intermittent fasting as both a biblical rhythm and a metabolic tool. Moses fasted 40 days. Elijah, David, Daniel, and Jesus himself all fasted. Modern science confirms: a 20-hour fast drops insulin, triggers autophagy (cellular cleanup), upregulates fat burning, and resets metabolic function. Your 4-hour window from 1–5 PM is your daily act of stewardship. The fast is not deprivation — it is discipline and devotion in one.</div>
+        <div class="p-verse">"When you fast, do not look somber as the hypocrites do... but put oil on your head and wash your face." <span>— Matthew 6:17</span></div>
+      </div>
+
+      <div class="principle-card">
+        <div class="p-header"><div class="p-icon"><i class="ti ti-meat" aria-hidden="true"></i></div>
+          <div><div class="p-title">Pillar 3 — Biblical proteins: grass-fed meats, clean fish, eggs</div><span class="p-tag">Muscle + Healing</span></div>
+        </div>
+        <div class="p-body">Rubin notes that the Bible's longest-lived heroes ate red meat whenever they could. Grass-fed beef, lamb, bison, and poultry are foundational. Wild-caught fish (salmon, sardines, tuna) provide omega-3s for anti-inflammation and brain health. Whole eggs are one of the most nutrient-dense foods on earth — the yolk is not the enemy. Grass-fed whey isolate is the modern equivalent of clean animal protein. Avoid factory-farmed, hormone-injected, antibiotic-laden meats — not what God designed.</div>
+        <div class="p-verse">"Bring the fattened calf and kill it. Let us eat and celebrate." <span>— Luke 15:23</span></div>
+      </div>
+
+      <div class="principle-card">
+        <div class="p-header"><div class="p-icon"><i class="ti ti-droplet" aria-hidden="true"></i></div>
+          <div><div class="p-title">Pillar 4 — Olive oil, raw honey, and biblical fats</div><span class="p-tag">Anti-Inflammation</span></div>
+        </div>
+        <div class="p-body">Extra virgin olive oil is Scripture's primary fat — mentioned over 140 times. Rich in oleocanthal, a natural anti-inflammatory compound comparable in effect to ibuprofen. Raw, local honey is the Biblio Diet's only approved sweetener — containing enzymes, antioxidants, and antimicrobial properties. Avocado and tree nuts (almonds, walnuts) align perfectly with this pillar. Avoid all industrial seed oils (canola, soybean, vegetable, corn oil) — highly processed, omega-6 dominant, and inflammatory.</div>
+        <div class="p-verse">"A land flowing with milk and honey." <span>— Exodus 3:8</span></div>
+      </div>
+
+      <div class="principle-card">
+        <div class="p-header"><div class="p-icon"><i class="ti ti-plant" aria-hidden="true"></i></div>
+          <div><div class="p-title">Pillar 5 — Daniel's vegetables and the plant kingdom</div><span class="p-tag">Gut Health + Longevity</span></div>
+        </div>
+        <div class="p-body">Daniel 1 is the Biblio Diet's most direct food experiment: Daniel and his companions ate only vegetables and water for 10 days — and were visibly healthier and stronger than those eating the king's rich food. Modern science confirms: cruciferous vegetables, leafy greens, garlic, and onions are among the most powerful anti-cancer, anti-inflammatory foods known. Biblical fruits — pomegranate, figs, dates, grapes — are dense in antioxidants. Load your plate with plants at every meal.</div>
+        <div class="p-verse">"Please test your servants for ten days: Give us nothing but vegetables to eat and water to drink." <span>— Daniel 1:12</span></div>
+      </div>
+
+      <div class="principle-card">
+        <div class="p-header"><div class="p-icon"><i class="ti ti-bread" aria-hidden="true"></i></div>
+          <div><div class="p-title">Pillar 6 — Properly prepared grains and fermented foods</div><span class="p-tag">Gut Microbiome</span></div>
+        </div>
+        <div class="p-body">Rubin: "With Jesus being called the bread of life, it wouldn't make sense if bread was bad for everyone. The way it's processed and preserved matters." The Biblio Diet endorses whole grain sourdough (long-fermented, which breaks down anti-nutrients and gluten proteins), barley, lentils, and chickpeas. These feed your gut microbiome — which modern science now links to immunity, mood, and metabolism. Commercial white bread made with instant yeast and 30 additives bears no resemblance to Scripture's grain.</div>
+        <div class="p-verse">"Jesus said to them, 'I am the bread of life; whoever comes to me shall not hunger.'" <span>— John 6:35</span></div>
+      </div>
+
+      <div class="principle-card">
+        <div class="p-header"><div class="p-icon"><i class="ti ti-heart" aria-hidden="true"></i></div>
+          <div><div class="p-title">Pillar 7 — Faith, prayer, and gratitude as healing forces</div><span class="p-tag">Whole Person</span></div>
+        </div>
+        <div class="p-body">Rubin and Axe insist the Bibliotarian lifestyle is not purely physical. "I listened to my great physician, not my ordinary physician," Axe said of his own spinal recovery. Faith itself plays a role in healing that no macronutrient can replicate. Pray before meals — not as ritual, but as genuine gratitude for provision. Cultivate peace: chronic stress raises cortisol which sabotages every physical goal you have. Rest on the Sabbath. Honor sleep — 80% of human growth hormone is released during deep sleep. God is restoring the whole person.</div>
+        <div class="p-verse">"Dear friend, I pray that you may enjoy good health and that all may go well with you, even as your soul is getting along well." <span>— 3 John 1:2</span></div>
+      </div>
+
+      <div class="sec-head" style="margin-top:8px">Biblical grocery list — the Bibliotarian pantry</div>
+      <div class="food-grid">
+        <div class="food-pill"><div class="fp-name">Grass-fed beef</div><div class="fp-ref">Gen 18:7, Luke 15:23</div></div>
+        <div class="food-pill"><div class="fp-name">Lamb</div><div class="fp-ref">Exodus 12:3–4</div></div>
+        <div class="food-pill"><div class="fp-name">Wild-caught fish</div><div class="fp-ref">Matt 7:10, John 21:9</div></div>
+        <div class="food-pill"><div class="fp-name">Whole eggs</div><div class="fp-ref">Luke 11:12</div></div>
+        <div class="food-pill"><div class="fp-name">Raw grass-fed milk</div><div class="fp-ref">Exodus 3:8</div></div>
+        <div class="food-pill"><div class="fp-name">Olive oil (EVOO)</div><div class="fp-ref">Deut 8:8 · 140+ refs</div></div>
+        <div class="food-pill"><div class="fp-name">Raw local honey</div><div class="fp-ref">Proverbs 24:13</div></div>
+        <div class="food-pill"><div class="fp-name">Pomegranate</div><div class="fp-ref">Numbers 13:23</div></div>
+        <div class="food-pill"><div class="fp-name">Figs</div><div class="fp-ref">1 Samuel 25:18</div></div>
+        <div class="food-pill"><div class="fp-name">Dates</div><div class="fp-ref">2 Samuel 16:1</div></div>
+        <div class="food-pill"><div class="fp-name">Lentils</div><div class="fp-ref">Genesis 25:34</div></div>
+        <div class="food-pill"><div class="fp-name">Barley</div><div class="fp-ref">Deuteronomy 8:8</div></div>
+        <div class="food-pill"><div class="fp-name">Almonds</div><div class="fp-ref">Genesis 43:11</div></div>
+        <div class="food-pill"><div class="fp-name">Garlic & onion</div><div class="fp-ref">Numbers 11:5</div></div>
+        <div class="food-pill"><div class="fp-name">Sourdough grain</div><div class="fp-ref">John 6:35</div></div>
+        <div class="food-pill"><div class="fp-name">Chickpeas</div><div class="fp-ref">2 Samuel 17:28</div></div>
+        <div class="food-pill"><div class="fp-name">Bison / venison</div><div class="fp-ref">Deut 14:5</div></div>
+        <div class="food-pill"><div class="fp-name">Leeks & cucumbers</div><div class="fp-ref">Numbers 11:5</div></div>
+      </div>
+    </div>
+
+    <!-- WORKOUT -->
+    <div id="tab-workout" class="section">
+      <div class="info-bar"><strong>Daily rhythm:</strong> Bodyweight + dumbbell strength at 7:00–8:30 AM · Zone 2 cardio in the evening (7:00–8:00 PM) · Eating window 1–5 PM · Sabbath rest Sunday</div>
+      <div id="workoutDays"></div>
+      <div class="cardio-card">
+        <div class="cardio-title"><i class="ti ti-flame" aria-hidden="true"></i> Evening cardio — Zone 2 (every training day)</div>
+        30–45 min brisk walk, light jog, stationary bike, or jump rope. Keep heart rate at 120–140 BPM. This burns fat without spiking cortisol or competing with muscle recovery. Do this after your 5 PM window closes. On rest days: 20 min easy walk minimum.
+        <div class="p-verse" style="margin-top:10px">"Whatever you do, work at it with all your heart, as working for the Lord." <span>— Colossians 3:23</span></div>
+      </div>
+    </div>
+
+    <!-- JOURNAL -->
+    <div id="tab-journal" class="section">
+      <div class="verse-banner" id="journalVerse" style="margin-bottom:16px"></div>
+      <div class="sec-head">Faith + fitness journal prompts</div>
+      <div class="prompt-grid" id="promptGrid"></div>
+      <div class="form-box">
+        <div class="sec-head" style="margin-bottom:12px">New entry</div>
+        <div class="f-row"><label class="f-label">Title</label><input type="text" id="jTitle" placeholder="e.g. Week 2 — feeling stronger in body and spirit"></div>
+        <div class="f-row"><label class="f-label">Your thoughts</label><textarea id="jText" placeholder="How did training feel? What are you grateful for? Prayer notes, scripture that hit different, wins, struggles..."></textarea></div>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="addJournal()"><i class="ti ti-device-floppy" aria-hidden="true"></i> Save entry</button>
+          <button class="btn-ghost" onclick="clearJournal()">Clear</button>
+        </div>
+      </div>
+      <div class="sec-head">Past entries</div>
+      <div id="journalList"><div class="empty-state"><i class="ti ti-notebook" aria-hidden="true" style="font-size:24px;display:block;margin-bottom:8px;color:#C8A96E"></i>No entries yet. Start writing today.</div></div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="tab-progress" class="section">
+      <div class="form-box">
+        <div class="sec-head" style="margin-bottom:12px">Log body stats</div>
+        <div class="f-grid2">
+          <div><label class="f-label">Weight (lbs)</label><input type="number" id="pW" placeholder="165" step="0.1"></div>
+          <div><label class="f-label">Body fat % (est.)</label><input type="number" id="pBF" placeholder="e.g. 18" step="0.1"></div>
+          <div><label class="f-label">Waist (in)</label><input type="number" id="pWaist" step="0.25"></div>
+          <div><label class="f-label">Arms (in)</label><input type="number" id="pArms" step="0.25"></div>
+          <div><label class="f-label">Chest (in)</label><input type="number" id="pChest" step="0.25"></div>
+          <div><label class="f-label">Energy level (1–10)</label><input type="number" id="pEnergy" min="1" max="10"></div>
+        </div>
+        <div class="f-row"><label class="f-label">Note / prayer for today</label><input type="text" id="pNote" placeholder="How are you feeling? A win to remember? A prayer?"></div>
+        <button class="btn-primary" onclick="logProgress()"><i class="ti ti-plus" aria-hidden="true"></i> Save stats</button>
+      </div>
+      <div class="sec-head">Progress log</div>
+      <div class="log-box" id="progList"><div class="empty-state"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:24px;display:block;margin-bottom:8px;color:#C8A96E"></i>No stats yet. Log today as your baseline.</div></div>
+      <div class="chart-wrap">
+        <div class="chart-title">Weight trend</div>
+        <div class="chart-inner"><canvas id="wChart" role="img" aria-label="Weight trend over time">Weight trend chart</canvas></div>
+      </div>
+    </div>
+
+  </div><!-- /body -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const SK='batBiblio_v3';
+let S={meals:[],journal:[],progress:[],wkDone:{}};
+try{const d=localStorage.getItem(SK);if(d)S=JSON.parse(d);}catch(e){}
+const save=()=>{try{localStorage.setItem(SK,JSON.stringify(S));}catch(e){}};
+const today=()=>new Date().toISOString().slice(0,10);
+const fmtDate=d=>new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+const fmtTime=d=>new Date(d).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+
+const VERSES=[
+  {text:'"Do you not know that your body is a temple of the Holy Spirit within you, whom you have from God? You are not your own, for you were bought with a price. So glorify God in your body."',ref:'1 Corinthians 6:19–20'},
+  {text:'"Whether you eat or drink, or whatever you do, do all to the glory of God."',ref:'1 Corinthians 10:31'},
+  {text:'"I can do all things through him who strengthens me."',ref:'Philippians 4:13'},
+  {text:'"Beloved, I pray that all may go well with you and that you may be in good health, as it goes well with your soul."',ref:'3 John 1:2'},
+  {text:'"Train yourself for godliness; for while bodily training is of some value, godliness is of value in every way, as it holds promise for the present life and also for the life to come."',ref:'1 Timothy 4:7–8'},
+  {text:'"He gives power to the faint, and to him who has no might he increases strength. They who wait for the Lord shall renew their strength; they shall mount up with wings like eagles."',ref:'Isaiah 40:29, 31'},
+  {text:'"And on the seventh day God finished his work that he had done, and he rested on the seventh day from all his work that he had done."',ref:'Genesis 2:2'},
+];
+
+const PROMPTS=[
+  {title:'The fast today',body:'What did your 20-hour fast feel like? Did you sense spiritual clarity or closeness to God during it?'},
+  {title:'Body as temple',body:'In what specific ways are you honoring the body God gave you this week? Where could you do better?'},
+  {title:'Strength & faith',body:'Where in your training today did you need to draw on something deeper than willpower?'},
+  {title:'Gratitude table',body:'Name 3 things you are grateful for today — one about your body, one about your spirit, one about your family.'},
+  {title:'Conviction check',body:'Are your food choices this week reflecting what you believe about who made you and what your body is for?'},
+  {title:'Progress prayer',body:'Write a short prayer over your body, your goals, and what God is doing in this season of discipline and renewal.'},
+];
+
+const QUICK=[
+  {name:'Grass-fed beef 6oz',cal:280,p:42,c:0,f:12},
+  {name:'Lamb chops 5oz',cal:260,p:35,c:0,f:14},
+  {name:'Grilled salmon 6oz',cal:240,p:38,c:0,f:10},
+  {name:'Sardines (1 can)',cal:190,p:23,c:0,f:11},
+  {name:'Whole eggs (3)',cal:210,p:18,c:1,f:15},
+  {name:'Sweet potato (lg)',cal:130,p:3,c:30,f:0},
+  {name:'Lentils 1c cooked',cal:230,p:18,c:40,f:1},
+  {name:'White rice 1.5c',cal:307,p:6,c:67,f:1},
+  {name:'Sourdough bread 2sl',cal:160,p:6,c:30,f:2},
+  {name:'Raw Greek yogurt 1c',cal:130,p:17,c:9,f:4},
+  {name:'Almond butter 2tbsp',cal:196,p:7,c:6,f:18},
+  {name:'Avocado (half)',cal:120,p:1,c:6,f:11},
+  {name:'Warrior Shake',cal:540,p:54,c:60,f:14},
+  {name:'Pre-workout shake',cal:120,p:25,c:1,f:1},
+  {name:'Raw honey 1tbsp',cal:64,p:0,c:17,f:0},
+  {name:'Pomegranate seeds ½c',cal:72,p:1,c:17,f:1},
+];
+
+const DAYS=[
+  {name:'Monday — Chest & Triceps',focus:'Push · Bodyweight + Dumbbells',exs:[
+    ['Push-up (standard)','4','15–20','45s'],['Wide push-up','3','12–15','45s'],
+    ['Decline push-up (feet elevated)','3','10–12','45s'],['DB chest press (floor)','4','10–12','60s'],
+    ['DB fly (floor)','3','12–15','60s'],['Chair / bench dip','3','10–15','45s'],
+    ['DB overhead tricep ext.','3','12–15','45s'],['Diamond push-up','2','8–10','45s'],
+  ]},
+  {name:'Tuesday — Back & Biceps',focus:'Pull · Bodyweight + Dumbbells',exs:[
+    ['Pull-up or inverted row','4','6–10','75s'],['DB bent-over row','4','10–12','60s'],
+    ['Superman hold','3','12 reps','45s'],['DB single-arm row','3','10–12 ea','60s'],
+    ['DB curl','3','10–12','45s'],['Hammer curl','3','10–12','45s'],['Reverse curl','2','12–15','45s'],
+  ]},
+  {name:'Wednesday — Legs',focus:'Legs · Bodyweight + Dumbbells',exs:[
+    ['Bodyweight squat','3','20','30s'],['DB goblet squat','4','12–15','60s'],
+    ['Bulgarian split squat','3','10 each','60s'],['DB Romanian deadlift','4','10–12','60s'],
+    ['Reverse lunge','3','12 each','45s'],['Wall sit','3','45–60s','45s'],
+    ['Single-leg calf raise','4','15–20 ea','30s'],['Plank','3','45–60s','30s'],
+  ]},
+  {name:'Thursday — Active Recovery',focus:'Rest · Walk + Stretch',exs:[
+    ['Easy walk 20–30 min','—','—','—'],['Hip flexor stretch','2','45s each','—'],
+    ['Thoracic rotation','2','10 each side','—'],['Child\'s pose','2','45s','—'],
+    ['Scripture & prayer','—','15+ min','—'],
+  ]},
+  {name:'Friday — Shoulders & Arms',focus:'Push/Pull · Bodyweight + Dumbbells',exs:[
+    ['Pike push-up','4','10–12','45s'],['DB overhead press','4','10–12','60s'],
+    ['DB lateral raise','3','14–16','45s'],['DB front raise','3','12','45s'],
+    ['Rear delt row','3','12–15','45s'],['Concentration curl','3','10–12','45s'],
+    ['Incline DB curl','3','10–12','45s'],['Overhead tricep ext.','3','12–15','45s'],
+  ]},
+  {name:'Saturday — Full Body Calisthenics',focus:'Compound Athletic Power',exs:[
+    ['Burpee','4','10–12','60s'],['Pull-up','4','6–10','75s'],
+    ['DB walking lunge','3','12 each','60s'],['Push-up complex (wide/std/diamond)','3','8 each','60s'],
+    ['DB farmer carry','3','30–40 yd','75s'],['Mountain climber','3','30s','30s'],
+    ['Hollow body hold','3','30–45s','30s'],
+  ]},
+  {name:'Sunday — Sabbath Rest',focus:'Honor the Lord · No Training',exs:[
+    ['No training today','—','—','—'],['Church & family time','—','Full day','—'],
+    ['Scripture & prayer','—','As long as needed','—'],
+  ]},
+];
+
+let wChart=null;
+
+function showTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  el.classList.add('on');
+  if(id==='progress')renderWChart();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+const todayMeals=()=>S.meals.filter(m=>m.date===today());
+
+function updateDash(){
+  const meals=todayMeals();
+  const cal=meals.reduce((s,m)=>s+m.cal,0);
+  const prot=meals.reduce((s,m)=>s+m.prot,0);
+  const carb=meals.reduce((s,m)=>s+m.carb,0);
+  const fat=meals.reduce((s,m)=>s+m.fat,0);
+  document.getElementById('dCal').innerHTML=cal+' <span class="stat-unit">/ 2,600</span>';
+  document.getElementById('dProt').innerHTML=prot+' <span class="stat-unit">g / 170g</span>';
+  document.getElementById('dMeals').textContent=meals.length;
+  const wk=getWeekDates();
+  const wDone=Object.keys(S.wkDone).filter(k=>wk.some(d=>k.startsWith(d))).length;
+  document.getElementById('dWorkouts').textContent=wDone;
+  const pct=Math.min(100,Math.round(cal/2600*100));
+  document.getElementById('calPct').textContent=pct+'%';
+  document.getElementById('calCircle').style.strokeDashoffset=Math.round(188.5-(188.5*pct/100));
+  document.getElementById('mP').style.width=Math.min(100,Math.round(prot/170*100))+'%';
+  document.getElementById('mC').style.width=Math.min(100,Math.round(carb/300*100))+'%';
+  document.getElementById('mF').style.width=Math.min(100,Math.round(fat/80*100))+'%';
+  document.getElementById('mPv').textContent=prot+'g';
+  document.getElementById('mCv').textContent=carb+'g';
+  document.getElementById('mFv').textContent=fat+'g';
+  const log=document.getElementById('dashLog');
+  if(!meals.length){log.innerHTML='<div class="empty-state"><i class="ti ti-salad" aria-hidden="true" style="font-size:24px;display:block;margin-bottom:8px;color:#C8A96E"></i>No meals logged yet today</div>';return;}
+  log.innerHTML=meals.slice().reverse().map(m=>`
+    <div class="log-item">
+      <div><div class="log-name">${m.name}</div><div class="log-sub">${fmtTime(m.ts)} · P:${m.prot}g C:${m.carb}g F:${m.fat}g${m.note?' · '+m.note:''}</div></div>
+      <div style="display:flex;align-items:center"><span class="log-cal">${m.cal} kcal</span><button class="log-del" onclick="delMeal('${m.id}')" aria-label="Delete meal"><i class="ti ti-trash" aria-hidden="true"></i></button></div>
+    </div>`).join('');
+}
+
+function updateClock(){
+  const now=new Date();
+  const mins=now.getHours()*60+now.getMinutes();
+  document.getElementById('wFill').style.width=Math.round(mins/1440*100)+'%';
+  const eating=(mins>=780&&mins<1020);
+  const badge=document.getElementById('wBadge');
+  const cd=document.getElementById('wCd');
+  if(eating){
+    badge.className='w-badge w-eat';
+    badge.innerHTML='<i class="ti ti-sun" aria-hidden="true" style="font-size:12px"></i> Eating window open';
+    const r=1020-mins;
+    cd.textContent='Closes in '+Math.floor(r/60)+'h '+(r%60)+'m';
+    document.getElementById('headerWindow').textContent='Window open · closes '+Math.floor(r/60)+'h '+(r%60)+'m';
+  } else if(mins<780){
+    badge.className='w-badge w-fast';
+    badge.innerHTML='<i class="ti ti-moon" aria-hidden="true" style="font-size:12px"></i> Fasting';
+    const r=780-mins;
+    cd.textContent='Window opens in '+Math.floor(r/60)+'h '+(r%60)+'m';
+    document.getElementById('headerWindow').textContent='Fasting · opens in '+Math.floor(r/60)+'h '+(r%60)+'m';
+  } else {
+    badge.className='w-badge w-fast';
+    badge.innerHTML='<i class="ti ti-moon" aria-hidden="true" style="font-size:12px"></i> Fasting';
+    const r=1440-mins+780;
+    cd.textContent='Next window in '+Math.floor(r/60)+'h '+(r%60)+'m';
+    document.getElementById('headerWindow').textContent='Fasting · next window '+Math.floor(r/60)+'h '+(r%60)+'m';
+  }
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('headerDate').textContent=days[now.getDay()]+', '+months[now.getMonth()]+' '+now.getDate();
+}
+
+function renderVerse(){
+  const v=VERSES[new Date().getDay()];
+  const html=`<div class="verse-eyebrow">Today's Word</div><div class="verse-text">${v.text}</div><div class="verse-ref">${v.ref}</div>`;
+  document.getElementById('dashVerse').innerHTML=html;
+  document.getElementById('journalVerse').innerHTML=html;
+}
+
+function logMeal(){
+  const name=document.getElementById('mName').value.trim();
+  if(!name){toast('Enter a meal name first');return;}
+  const m={id:Date.now()+'',date:today(),ts:new Date().toISOString(),name,
+    cal:parseInt(document.getElementById('mCal').value)||0,
+    prot:parseInt(document.getElementById('mProt').value)||0,
+    carb:parseInt(document.getElementById('mCarb').value)||0,
+    fat:parseInt(document.getElementById('mFat').value)||0,
+    note:document.getElementById('mNote').value.trim()};
+  S.meals.push(m);save();updateDash();clearMeal();toast('Meal logged — blessed eating!');
+}
+function clearMeal(){['mName','mCal','mProt','mCarb','mFat','mNote'].forEach(id=>document.getElementById(id).value='');}
+function delMeal(id){S.meals=S.meals.filter(m=>m.id!==id);save();updateDash();toast('Removed');}
+function quickFill(q){
+  document.getElementById('mName').value=q.name;
+  document.getElementById('mCal').value=q.cal;
+  document.getElementById('mProt').value=q.p;
+  document.getElementById('mCarb').value=q.c;
+  document.getElementById('mFat').value=q.f;
+  showTab('meals',document.querySelectorAll('.tab')[1]);
+}
+function renderQuick(){
+  document.getElementById('quickGrid').innerHTML=QUICK.map(q=>`
+    <button class="quick-btn" onclick='quickFill(${JSON.stringify(q)})'>
+      <div class="q-name">${q.name}</div>
+      <div class="q-sub">${q.cal} kcal · ${q.p}g protein</div>
+    </button>`).join('');
+}
+
+function renderWorkout(){
+  document.getElementById('workoutDays').innerHTML=DAYS.map((d,i)=>{
+    const key=today()+'_'+i;
+    const done=S.wkDone[key];
+    const isRest=(i===3||i===6);
+    return`<div class="day-card">
+      <div class="day-head${done?' done-day':''}" onclick="toggleDay(this,${i})" role="button" aria-expanded="false">
+        <div class="d-left">
+          <span class="done-dot"></span>
+          <div><div class="d-name">${d.name}</div><div class="d-focus">${d.focus}</div></div>
+        </div>
+        <i class="ti ti-chevron-down d-chevron" id="chev${i}" aria-hidden="true"></i>
+      </div>
+      <div class="day-content" id="dc${i}">
+        <table class="ex-tbl">
+          <tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Rest</th></tr>
+          ${d.exs.map(e=>`<tr><td>${e[0]}</td><td>${e[1]}</td><td>${e[2]}</td><td>${e[3]}</td></tr>`).join('')}
+        </table>
+        ${!isRest?`<button class="mark-btn${done?' done':''}" id="mb${i}" onclick="markDone(${i})">${done?'<i class="ti ti-check" aria-hidden="true"></i> Completed today':'Mark as done'}</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDay(head,i){
+  const c=document.getElementById('dc'+i);
+  const ch=document.getElementById('chev'+i);
+  const open=c.classList.toggle('open');
+  ch.style.transform=open?'rotate(180deg)':'rotate(0)';
+  head.setAttribute('aria-expanded',open);
+}
+
+function markDone(i){
+  S.wkDone[today()+'_'+i]=true;save();
+  const btn=document.getElementById('mb'+i);
+  btn.className='mark-btn done';
+  btn.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Completed today';
+  btn.closest('.day-card').querySelector('.day-head').classList.add('done-day');
+  updateDash();toast('Workout logged — well done, Josh!');
+}
+
+function getWeekDates(){
+  const d=new Date(),day=d.getDay(),dates=[];
+  for(let i=0;i<7;i++){const t=new Date(d);t.setDate(d.getDate()-day+i);dates.push(t.toISOString().slice(0,10));}
+  return dates;
+}
+
+function renderPrompts(){
+  document.getElementById('promptGrid').innerHTML=PROMPTS.map(p=>`
+    <div class="prompt-card" onclick="usePrompt('${p.title}',\`${p.body}\`)">
+      <strong>${p.title}</strong>${p.body}
+    </div>`).join('');
+}
+function usePrompt(t,b){
+  document.getElementById('jTitle').value=t;
+  document.getElementById('jText').value=b+'\n\n';
+  document.getElementById('jText').focus();
+}
+function addJournal(){
+  const text=document.getElementById('jText').value.trim();
+  if(!text){toast('Write something first');return;}
+  S.journal.push({id:Date.now()+'',date:today(),ts:new Date().toISOString(),
+    title:document.getElementById('jTitle').value.trim()||'Entry',text});
+  save();renderJournal();clearJournal();toast('Entry saved!');
+}
+function clearJournal(){document.getElementById('jTitle').value='';document.getElementById('jText').value='';}
+function delJournal(id){S.journal=S.journal.filter(j=>j.id!==id);save();renderJournal();toast('Deleted');}
+function renderJournal(){
+  const el=document.getElementById('journalList');
+  if(!S.journal.length){el.innerHTML='<div class="empty-state"><i class="ti ti-notebook" aria-hidden="true" style="font-size:24px;display:block;margin-bottom:8px;color:#C8A96E"></i>No entries yet. Start writing today.</div>';return;}
+  el.innerHTML=S.journal.slice().reverse().map(j=>`
+    <div class="j-entry">
+      <div class="j-meta">
+        <div><div class="j-title">${j.title}</div><div class="j-date">${fmtDate(j.ts)} · ${fmtTime(j.ts)}</div></div>
+        <button class="j-del" onclick="delJournal('${j.id}')" aria-label="Delete entry"><i class="ti ti-trash" aria-hidden="true"></i></button>
+      </div>
+      <div class="j-text">${j.text.replace(/\n/g,'<br>')}</div>
+    </div>`).join('');
+}
+
+function logProgress(){
+  const w=parseFloat(document.getElementById('pW').value);
+  if(!w){toast('Enter your weight to save');return;}
+  S.progress.push({id:Date.now()+'',date:today(),ts:new Date().toISOString(),
+    weight:w,bf:parseFloat(document.getElementById('pBF').value)||null,
+    waist:parseFloat(document.getElementById('pWaist').value)||null,
+    arms:parseFloat(document.getElementById('pArms').value)||null,
+    chest:parseFloat(document.getElementById('pChest').value)||null,
+    energy:parseInt(document.getElementById('pEnergy').value)||null,
+    note:document.getElementById('pNote').value.trim()});
+  save();renderProgress();renderWChart();
+  ['pW','pBF','pWaist','pArms','pChest','pEnergy','pNote'].forEach(id=>document.getElementById(id).value='');
+  toast('Stats saved — keep going!');
+}
+function delProgress(id){S.progress=S.progress.filter(p=>p.id!==id);save();renderProgress();renderWChart();toast('Deleted');}
+function renderProgress(){
+  const el=document.getElementById('progList');
+  if(!S.progress.length){el.innerHTML='<div class="empty-state"><i class="ti ti-chart-line" aria-hidden="true" style="font-size:24px;display:block;margin-bottom:8px;color:#C8A96E"></i>No stats yet. Log today as your baseline.</div>';return;}
+  el.innerHTML=S.progress.slice().reverse().map(p=>`
+    <div class="prog-row">
+      <div>
+        <div class="prog-w">${p.weight} lbs${p.bf?' · '+p.bf+'% body fat':''}</div>
+        <div class="prog-date">${fmtDate(p.ts)}${p.energy?' · Energy '+p.energy+'/10':''}</div>
+        ${(p.chest||p.waist||p.arms)?`<div class="prog-date">${p.chest?'Chest '+p.chest+'"  ':''}${p.waist?'Waist '+p.waist+'"  ':''}${p.arms?'Arms '+p.arms+'"':''}</div>`:''}
+        ${p.note?`<div class="prog-note">${p.note}</div>`:''}
+      </div>
+      <button onclick="delProgress('${p.id}')" class="log-del" aria-label="Delete"><i class="ti ti-trash" aria-hidden="true"></i></button>
+    </div>`).join('');
+}
+function renderWChart(){
+  const canvas=document.getElementById('wChart');if(!canvas)return;
+  const data=S.progress.filter(p=>p.weight).slice(-20);
+  if(wChart){wChart.destroy();wChart=null;}
+  if(!data.length)return;
+  wChart=new Chart(canvas,{type:'line',
+    data:{labels:data.map(p=>new Date(p.ts).toLocaleDateString('en-US',{month:'short',day:'numeric'})),
+      datasets:[{label:'Weight (lbs)',data:data.map(p=>p.weight),
+        borderColor:'#B85C38',backgroundColor:'rgba(184,92,56,.08)',
+        tension:.35,pointRadius:5,pointBackgroundColor:'#B85C38',fill:true,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},
+        y:{ticks:{font:{size:11},callback:v=>v+' lbs'},grid:{color:'rgba(128,128,128,.08)'}}}}});
+}
+
+updateClock();setInterval(updateClock,60000);
+renderVerse();renderQuick();renderWorkout();renderPrompts();renderJournal();renderProgress();updateDash();
+</script>
+</body>
+</html>
