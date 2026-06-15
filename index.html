@@ -206,6 +206,32 @@
   .info-bar{background:rgba(74,92,58,.07);border:1px solid rgba(74,92,58,.18);border-radius:10px;padding:11px 14px;margin-bottom:16px;font-size:13px;color:var(--muted);line-height:1.6}
   .info-bar strong{color:var(--text)}
 
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,12,6,.55);z-index:1000;align-items:center;justify-content:center;padding:20px}
+  .modal-overlay.show{display:flex}
+  .modal-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;max-width:380px;width:100%;max-height:88vh;overflow-y:auto}
+  .modal-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+  .modal-sub{font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+  .modal-result{background:var(--surface);border-radius:10px;padding:14px;text-align:center;margin:14px 0;display:none}
+  .modal-result.show{display:block}
+  .modal-result-val{font-size:30px;font-weight:700;color:var(--accent)}
+  .modal-result-lbl{font-size:11px;color:var(--muted);margin-top:3px;font-weight:500}
+  .modal-actions{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+  .modal-actions .btn-primary,.modal-actions .btn-ghost{display:inline-flex;align-items:center;gap:5px}
+  .calc-link{color:var(--accent);cursor:pointer;font-weight:700;font-size:11px;float:right;text-decoration:underline}
+
+  /* WORKOUT TIMER */
+  .ex-row-clickable{cursor:pointer}
+  .ex-row-clickable:hover td{background:var(--surface)}
+  .ex-timer-icon{color:var(--wheat);font-size:11px;margin-left:5px}
+  .timer-box{text-align:center}
+  .timer-set-indicator{font-size:12px;font-weight:700;color:var(--olive);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px}
+  .timer-circle{position:relative;width:170px;height:170px;margin:0 auto 16px}
+  .timer-circle svg{width:170px;height:170px}
+  .timer-time-inside{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:var(--text);padding:0 22px;text-align:center;line-height:1.15}
+  .timer-status{font-size:13px;color:var(--muted);margin-bottom:18px;min-height:20px}
+  .timer-action-btn{font-size:15px!important;padding:13px 0!important;width:100%;justify-content:center!important;font-weight:700!important}
+
   @media(max-width:480px){
     .f-grid4{grid-template-columns:1fr 1fr}
     .stats-grid{grid-template-columns:1fr 1fr}
@@ -436,6 +462,7 @@
     <!-- WORKOUT -->
     <div id="tab-workout" class="section">
       <div class="info-bar"><strong>Daily rhythm:</strong> Bodyweight + dumbbell strength at 7:00–8:30 AM · Zone 2 cardio in the evening (7:00–8:00 PM) · Eating window 1–5 PM · Sabbath rest Sunday</div>
+      <div class="info-bar"><i class="ti ti-stopwatch" aria-hidden="true"></i> <strong>Tap any exercise</strong> to open a set-by-set rest timer — it counts down between sets and chimes when it's time to go again.</div>
       <div id="workoutDays"></div>
       <div class="cardio-card">
         <div class="cardio-title"><i class="ti ti-flame" aria-hidden="true"></i> Evening cardio — Zone 2 (every training day)</div>
@@ -468,7 +495,7 @@
         <div class="sec-head" style="margin-bottom:12px">Log body stats</div>
         <div class="f-grid2">
           <div><label class="f-label">Weight (lbs)</label><input type="number" id="pW" placeholder="165" step="0.1"></div>
-          <div><label class="f-label">Body fat % (est.)</label><input type="number" id="pBF" placeholder="e.g. 18" step="0.1"></div>
+          <div><label class="f-label">Body fat % (est.) <span class="calc-link" onclick="openBFCalc()">Calculate</span></label><input type="number" id="pBF" placeholder="e.g. 18" step="0.1" onclick="pBFClick(this)"></div>
           <div><label class="f-label">Waist (in)</label><input type="number" id="pWaist" step="0.25"></div>
           <div><label class="f-label">Arms (in)</label><input type="number" id="pArms" step="0.25"></div>
           <div><label class="f-label">Chest (in)</label><input type="number" id="pChest" step="0.25"></div>
@@ -483,9 +510,57 @@
         <div class="chart-title">Weight trend</div>
         <div class="chart-inner"><canvas id="wChart" role="img" aria-label="Weight trend over time">Weight trend chart</canvas></div>
       </div>
+      <div class="chart-wrap">
+        <div class="chart-title">Workout consistency — completed per week (out of 5)</div>
+        <div class="chart-inner"><canvas id="consistencyChart" role="img" aria-label="Workout consistency by week">Workout consistency chart</canvas></div>
+      </div>
     </div>
 
   </div><!-- /body -->
+
+  <!-- WORKOUT TIMER MODAL -->
+  <div class="modal-overlay" id="timerModalOverlay" onclick="if(event.target===this)closeTimer()">
+    <div class="modal-box timer-box">
+      <div class="modal-title" id="timerExName" style="justify-content:center"><i class="ti ti-stopwatch" aria-hidden="true"></i> Exercise</div>
+      <div class="modal-sub" id="timerExDetail">Sets × Reps · Rest</div>
+      <div class="timer-set-indicator" id="timerSetIndicator">Set 1 of 4</div>
+      <div class="timer-circle">
+        <svg viewBox="0 0 120 120" role="img" aria-hidden="true">
+          <circle cx="60" cy="60" r="52" fill="none" stroke-width="8" stroke="var(--surface)"/>
+          <circle cx="60" cy="60" r="52" fill="none" stroke-width="8" stroke="#4A5C3A" stroke-dasharray="326.7" stroke-dashoffset="0" id="timerRing" stroke-linecap="round" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset 1s linear, stroke .3s"></circle>
+        </svg>
+        <div class="timer-time-inside" id="timerTime" aria-live="polite">--</div>
+      </div>
+      <div class="timer-status" id="timerStatus" aria-live="polite">Tap Start Set to begin</div>
+      <div class="modal-actions" style="flex-direction:column">
+        <button class="btn-primary timer-action-btn" id="timerActionBtn" onclick="timerAction()">Start Set 1</button>
+        <div style="display:flex;gap:8px;width:100%;margin-top:8px">
+          <button class="btn-ghost" style="flex:1;justify-content:center" onclick="resetTimer()"><i class="ti ti-refresh" aria-hidden="true"></i> Reset</button>
+          <button class="btn-ghost" style="flex:1;justify-content:center" onclick="closeTimer()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY FAT CALCULATOR MODAL -->
+  <div class="modal-overlay" id="bfModalOverlay" onclick="if(event.target===this)closeBFCalc()">
+    <div class="modal-box">
+      <div class="modal-title"><i class="ti ti-ruler-2" aria-hidden="true"></i> Body Fat % Calculator</div>
+      <div class="modal-sub">U.S. Navy method. Grab a flexible tape measure and measure in inches at the points below — relaxed, not flexed.</div>
+      <div class="f-row"><label class="f-label">Neck circumference (in) — just below the larynx</label><input type="number" id="bfNeck" step="0.1" placeholder="e.g. 15.5"></div>
+      <div class="f-row"><label class="f-label">Waist circumference (in) — at the navel, relaxed</label><input type="number" id="bfWaist" step="0.1" placeholder="e.g. 34"></div>
+      <div class="f-row"><label class="f-label">Height (in)</label><input type="number" id="bfHeight" step="0.1" placeholder="e.g. 70"></div>
+      <div class="modal-result" id="bfResult">
+        <div class="modal-result-val" id="bfResultVal">--</div>
+        <div class="modal-result-lbl">Estimated body fat %</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" onclick="calcBF()"><i class="ti ti-calculator" aria-hidden="true"></i> Calculate</button>
+        <button class="btn-primary" id="bfUseBtn" style="display:none;background:#4A5C3A" onclick="useBF()"><i class="ti ti-check" aria-hidden="true"></i> Use this value</button>
+        <button class="btn-ghost" onclick="closeBFCalc()">Close</button>
+      </div>
+    </div>
+  </div>
 </div><!-- /app -->
 
 <div class="toast" id="toast"></div>
@@ -580,13 +655,14 @@ const DAYS=[
 ];
 
 let wChart=null;
+let consistencyChart=null;
 
 function showTab(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
   document.getElementById('tab-'+id).classList.add('on');
   el.classList.add('on');
-  if(id==='progress')renderWChart();
+  if(id==='progress'){renderWChart();renderConsistencyChart();}
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -711,9 +787,12 @@ function renderWorkout(){
       <div class="day-content" id="dc${i}">
         <table class="ex-tbl">
           <tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Rest</th></tr>
-          ${d.exs.map(e=>`<tr><td>${e[0]}</td><td>${e[1]}</td><td>${e[2]}</td><td>${e[3]}</td></tr>`).join('')}
+          ${d.exs.map((e,exIdx)=>{
+            const hasTimer=e[1]!=='—';
+            return`<tr${hasTimer?` class="ex-row-clickable" onclick="openTimer(${i},${exIdx})"`:''}><td>${e[0]}${hasTimer?' <i class="ti ti-stopwatch ex-timer-icon" aria-hidden="true"></i>':''}</td><td>${e[1]}</td><td>${e[2]}</td><td>${e[3]}</td></tr>`;
+          }).join('')}
         </table>
-        ${!isRest?`<button class="mark-btn${done?' done':''}" id="mb${i}" onclick="markDone(${i})">${done?'<i class="ti ti-check" aria-hidden="true"></i> Completed today':'Mark as done'}</button>`:''}
+        ${!isRest?`<button class="mark-btn${done?' done':''}" id="mb${i}" onclick="toggleDone(${i})">${done?'<i class="ti ti-check" aria-hidden="true"></i> Completed — tap to undo':'Mark as done'}</button>`:''}
       </div>
     </div>`;
   }).join('');
@@ -727,13 +806,26 @@ function toggleDay(head,i){
   head.setAttribute('aria-expanded',open);
 }
 
-function markDone(i){
-  S.wkDone[today()+'_'+i]=true;save();
+function toggleDone(i){
+  const key=today()+'_'+i;
+  const nowDone=!S.wkDone[key];
+  if(nowDone){S.wkDone[key]=true;}else{delete S.wkDone[key];}
+  save();
   const btn=document.getElementById('mb'+i);
-  btn.className='mark-btn done';
-  btn.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Completed today';
-  btn.closest('.day-card').querySelector('.day-head').classList.add('done-day');
-  updateDash();toast('Workout logged — well done, Josh!');
+  const head=btn.closest('.day-card').querySelector('.day-head');
+  if(nowDone){
+    btn.className='mark-btn done';
+    btn.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Completed — tap to undo';
+    head.classList.add('done-day');
+    toast('Workout logged — well done, Josh!');
+  }else{
+    btn.className='mark-btn';
+    btn.innerHTML='Mark as done';
+    head.classList.remove('done-day');
+    toast('Marked as not done');
+  }
+  updateDash();
+  renderConsistencyChart();
 }
 
 function getWeekDates(){
@@ -818,6 +910,193 @@ function renderWChart(){
       plugins:{legend:{display:false}},
       scales:{x:{ticks:{font:{size:11}},grid:{display:false}},
         y:{ticks:{font:{size:11},callback:v=>v+' lbs'},grid:{color:'rgba(128,128,128,.08)'}}}}});
+}
+
+// Workout days that have a "mark as done" button (Mon, Tue, Wed, Fri, Sat = DAYS indices 0,1,2,4,5)
+const WORKOUT_DAY_INDICES=[0,1,2,4,5];
+
+function renderConsistencyChart(){
+  const canvas=document.getElementById('consistencyChart');if(!canvas)return;
+  const weeks=[];
+  const now=new Date();
+  const curDay=now.getDay(); // 0=Sun..6=Sat
+  for(let w=7;w>=0;w--){
+    const start=new Date(now);
+    start.setDate(now.getDate()-curDay-(w*7)); // Sunday of that week
+    let count=0;
+    for(let i=0;i<7;i++){
+      const d=new Date(start);
+      d.setDate(start.getDate()+i);
+      const dateStr=d.toISOString().slice(0,10);
+      const jsDay=d.getDay();
+      const dayIdx=(jsDay+6)%7; // convert to Mon=0..Sun=6 (matches DAYS array)
+      if(WORKOUT_DAY_INDICES.includes(dayIdx)&&S.wkDone[dateStr+'_'+dayIdx])count++;
+    }
+    weeks.push({label:start.toLocaleDateString('en-US',{month:'short',day:'numeric'}),count});
+  }
+  if(consistencyChart){consistencyChart.destroy();consistencyChart=null;}
+  consistencyChart=new Chart(canvas,{type:'bar',
+    data:{labels:weeks.map(w=>w.label),
+      datasets:[{label:'Workouts completed',data:weeks.map(w=>w.count),
+        backgroundColor:'#4A5C3A',borderRadius:5,maxBarThickness:30}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>ctx.parsed.y+' of 5 workouts'}}},
+      scales:{y:{min:0,max:5,ticks:{stepSize:1,font:{size:11}},grid:{color:'rgba(128,128,128,.08)'}},
+        x:{ticks:{font:{size:10}},grid:{display:false}}}}});
+}
+
+// ---- Body Fat % Calculator (U.S. Navy method) ----
+function pBFClick(input){
+  if(!input.value)openBFCalc();
+}
+function openBFCalc(){
+  document.getElementById('bfModalOverlay').classList.add('show');
+}
+function closeBFCalc(){
+  document.getElementById('bfModalOverlay').classList.remove('show');
+}
+function calcBF(){
+  const neck=parseFloat(document.getElementById('bfNeck').value);
+  const waist=parseFloat(document.getElementById('bfWaist').value);
+  const height=parseFloat(document.getElementById('bfHeight').value);
+  if(!neck||!waist||!height||waist<=neck){toast('Enter valid measurements — waist must be greater than neck');return;}
+  let bf=86.010*Math.log10(waist-neck)-70.041*Math.log10(height)+36.76;
+  bf=Math.max(2,Math.round(bf*10)/10);
+  document.getElementById('bfResultVal').textContent=bf+'%';
+  document.getElementById('bfResult').classList.add('show');
+  const useBtn=document.getElementById('bfUseBtn');
+  useBtn.style.display='inline-flex';
+  useBtn.dataset.val=bf;
+}
+function useBF(){
+  const val=document.getElementById('bfUseBtn').dataset.val;
+  document.getElementById('pBF').value=val;
+  closeBFCalc();
+  toast('Body fat % filled in');
+}
+
+// ---- Workout Rest Timer ----
+const RING_CIRC=326.7;
+let timerState={dayIdx:null,exIdx:null,currentSet:1,totalSets:1,restSeconds:60,reps:'',phase:'ready',intervalId:null,remaining:0};
+
+function parseRestSeconds(restStr){
+  const nums=restStr.match(/\d+/g);
+  if(!nums)return 60;
+  return parseInt(nums[nums.length-1]);
+}
+
+function openTimer(dayIdx,exIdx){
+  const ex=DAYS[dayIdx].exs[exIdx];
+  if(ex[1]==='—')return;
+  clearInterval(timerState.intervalId);
+  timerState={dayIdx,exIdx,currentSet:1,totalSets:parseInt(ex[1])||1,restSeconds:parseRestSeconds(ex[3]),reps:ex[2],phase:'ready',intervalId:null,remaining:0};
+  document.getElementById('timerExName').innerHTML='<i class="ti ti-stopwatch" aria-hidden="true"></i> '+ex[0];
+  document.getElementById('timerExDetail').textContent=ex[1]+' sets × '+ex[2]+' reps · '+ex[3]+' rest between sets';
+  updateTimerDisplay();
+  document.getElementById('timerModalOverlay').classList.add('show');
+}
+
+function closeTimer(){
+  clearInterval(timerState.intervalId);
+  document.getElementById('timerModalOverlay').classList.remove('show');
+}
+
+function resetTimer(){
+  clearInterval(timerState.intervalId);
+  timerState.currentSet=1;
+  timerState.phase='ready';
+  timerState.remaining=0;
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay(){
+  const ring=document.getElementById('timerRing');
+  const timeEl=document.getElementById('timerTime');
+  const statusEl=document.getElementById('timerStatus');
+  const setEl=document.getElementById('timerSetIndicator');
+  const btn=document.getElementById('timerActionBtn');
+
+  if(timerState.phase==='done'){
+    setEl.textContent='All sets complete';
+    timeEl.innerHTML='<i class="ti ti-check" aria-hidden="true"></i>';
+    statusEl.textContent='Great work — move to the next exercise.';
+    btn.textContent='Finish';
+    ring.style.stroke='#4A5C3A';
+    ring.style.strokeDashoffset='0';
+    return;
+  }
+  setEl.textContent='Set '+timerState.currentSet+' of '+timerState.totalSets;
+  if(timerState.phase==='ready'){
+    timeEl.textContent=timerState.reps;
+    statusEl.textContent='Do your reps, then tap Start Rest';
+    btn.textContent='Start Set '+timerState.currentSet;
+    ring.style.stroke='#4A5C3A';
+    ring.style.strokeDashoffset='0';
+  }else if(timerState.phase==='working'){
+    timeEl.textContent=timerState.reps;
+    statusEl.textContent='Working — finish your reps then tap Start Rest';
+    btn.textContent='Start Rest';
+    ring.style.stroke='#C8A96E';
+    ring.style.strokeDashoffset='0';
+  }else if(timerState.phase==='resting'){
+    timeEl.textContent=timerState.remaining;
+    statusEl.textContent=timerState.currentSet<timerState.totalSets?'Resting...':'Resting — last set done!';
+    btn.textContent='Skip Rest';
+    ring.style.stroke='#B85C38';
+    ring.style.strokeDashoffset=Math.round(RING_CIRC*(1-timerState.remaining/timerState.restSeconds));
+  }
+}
+
+function timerAction(){
+  if(timerState.phase==='ready'){
+    timerState.phase='working';
+    updateTimerDisplay();
+  }else if(timerState.phase==='working'){
+    timerState.phase='resting';
+    timerState.remaining=timerState.restSeconds;
+    updateTimerDisplay();
+    timerState.intervalId=setInterval(()=>{
+      timerState.remaining--;
+      if(timerState.remaining<=0){
+        clearInterval(timerState.intervalId);
+        playChime();
+        advanceSet();
+      }else{
+        updateTimerDisplay();
+      }
+    },1000);
+  }else if(timerState.phase==='resting'){
+    clearInterval(timerState.intervalId);
+    advanceSet();
+  }else if(timerState.phase==='done'){
+    closeTimer();
+  }
+}
+
+function advanceSet(){
+  timerState.currentSet++;
+  timerState.phase=(timerState.currentSet>timerState.totalSets)?'done':'ready';
+  updateTimerDisplay();
+}
+
+function playChime(){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    [0,200,400].forEach((t,idx)=>{
+      setTimeout(()=>{
+        const osc=ctx.createOscillator();
+        const gain=ctx.createGain();
+        osc.connect(gain);gain.connect(ctx.destination);
+        osc.type='sine';
+        osc.frequency.value=idx<2?880:1175;
+        gain.gain.setValueAtTime(0.0001,ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.3,ctx.currentTime+0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.3);
+        osc.start();osc.stop(ctx.currentTime+0.32);
+      },t);
+    });
+  }catch(e){}
 }
 
 updateClock();setInterval(updateClock,60000);
